@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Math Helper</title>
+  <style>
+    .back {
+      display: inline-block;
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 30px;
+      border-radius: 50px;
+      transition: 400ms ease-out;
+      margin-bottom: 30px;
+    }
+    .back:hover{
+      background-color: #0a830e;
+      font-size: 23px;
+    }
+
+    .input{
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 30px;
+    }
+    #submit{
+        display: block;
+        text-align: center;
+      padding: 10px;
+      font-size: 20px;
+      background-color: #04bc0a;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: auto;
+      border-radius: 50px;
+      margin-bottom: 30px;
+    }
+    #register-x{
+        font-size: 30px;
+    }
+    #register-y{
+        font-size: 30px;
+    }
+    canvas{
+        margin-left:8vw;
+        width: 80vw;
+        height: 80vw;
+    }
+  </style>
+</head>
+<body>
+    <a class="back" href="index.html">back</a>
+    <br>
+    <div class="input">
+        <label for="register-x">coordinate：（</label>
+            <select id="register-x" onchange="toggleOption()" required>
+                <option value="">x</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        <label for="register-y">，</label>
+            <select id="register-y" onchange="toggleOption()" required>
+                <option value="">y</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        <label >）</label>
+    </div>
+    <div id="submit">submit</div>
+    <canvas id="canvas" width="800px" height="800px"></canvas>
+    <script>
+        function toggleOption() {
+            var select1 = document.getElementById("register-x");
+            var select2 = document.getElementById("register-y");
+            var option1 = select1.options[0];
+            var option2 = select2.options[0];
+
+            if (select1.selectedIndex === 0) {
+                option1.disabled = false;
+            } else {
+                option1.disabled = true;
+            }
+            if (select2.selectedIndex === 0) {
+                option2.disabled = false;
+            } else {
+                option2.disabled = true;
+            }
+        }
+
+        var canvas = document.getElementById('canvas');
+        var pen = canvas.getContext('2d');
+
+        var fabh = 10;
+        var tabh = (canvas.width - 40) / fabh;
+
+        function draw() {
+            pen.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (var x = 20; x < canvas.width; x += tabh) {
+                pen.moveTo(x, 0);
+                pen.lineTo(x, canvas.height);
+                var number = (x - 20) / tabh;
+                pen.fillStyle = '#009';
+                pen.fillText(number.toString(), x - 13, canvas.height - 7);
+            }
+
+            for (var y = 20; y < canvas.height; y += tabh) {
+                pen.moveTo(0, y);
+                pen.lineTo(canvas.width, y);
+                var number = fabh - (y - 20) / tabh;
+                pen.fillStyle = '#009';
+                if (number != 0) pen.fillText(number.toString(),6, y + 15); 
+            }
+
+            pen.strokeStyle = '#009';
+            pen.stroke();
+        }
+
+        function drawPoint(x, y) {
+            pen.fillStyle = '#009';
+            pen.fillRect(x * tabh + 20 - 4, (fabh - y) * tabh + 20 - 4, 8, 8);
+        }
+
+        document.querySelector('#submit').addEventListener('click', function(event) {
+            event.preventDefault(); 
+            var selectX = document.getElementById('register-x');
+            var selectY = document.getElementById('register-y');
+            var indexX = selectX.selectedIndex;
+            var indexY = selectY.selectedIndex;
+            var px = indexX - 1; 
+            var py = indexY - 1;
+            pen.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+            drawPoint(px, py);
+        });
+
+        draw();
+    </script>
+</body>
+</html>

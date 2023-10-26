@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Math Helper</title>
+  <style>
+    .back {
+      display: inline-block;
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 30px;
+      border-radius: 50px;
+      transition: 400ms ease-out;
+      margin-bottom: 30px;
+    }
+    .back:hover{
+      background-color: #0a830e;
+      font-size: 23px;
+    }
+
+    .input{
+        margin-bottom: 30px;
+        text-align: center;
+        font-size: 30px;
+    }
+    #submit{
+        display: block;
+        text-align: center;
+      padding: 10px;
+      font-size: 20px;
+      background-color: #04bc0a;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: auto;
+      border-radius: 50px;
+      margin-bottom: 30px;
+    }
+    #register-x{
+        font-size: 30px;
+    }
+    #register-y{
+        font-size: 30px;
+    }
+    .canvas-container {
+        position: relative;
+        width: 80%;
+        height: 80%;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+    canvas {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-top: -40%;
+        width: 100%;
+        height: 100%;
+    }
+  </style>
+</head>
+<body>
+    <a class="back" href="index.html">back</a>
+    <br>
+    <div class="input">
+        <label for="num">number:</label>
+          <input id="num" placeholder="enter a number..." required></input>
+    </div>
+    <div id="submit">submit</div>
+    <div class="canvas-container">
+        <canvas id="canvas" width="700px" height="700px"></canvas>
+    </div>
+    <script>
+        function toggleOption() {
+            var select1 = document.getElementById("register-x");
+            var select2 = document.getElementById("register-y");
+            var option1 = select1.options[0];
+            var option2 = select2.options[0];
+
+            if (select1.selectedIndex === 0) {
+                option1.disabled = false;
+            } else {
+                option1.disabled = true;
+            }
+            if (select2.selectedIndex === 0) {
+                option2.disabled = false;
+            } else {
+                option2.disabled = true;
+            }
+        }
+
+        var canvas = document.getElementById('canvas');
+        var pen = canvas.getContext('2d');
+
+        // var canvasBottom = document.getElementById('canvas-bottom');
+        // var penBottom = canvasBottom.getContext('2d');
+
+        var fabh = 2;
+        var tabh = (canvas.width - 40) / fabh;
+
+        function draw(n, pen) {
+          pen.clearRect(0, 0, canvas.width, canvas.height);
+          pen.moveTo(0, canvas.height / 2);
+          pen.lineTo(canvas.width, canvas.height / 2);
+          for (var x = 20; x < canvas.width; x += tabh) {
+              pen.moveTo(x, canvas.height / 2);
+              pen.lineTo(x, canvas.height / 2 - 10);
+              var number = (x - 20) / tabh - 1 + Math.floor(n);
+              for(var j = 1; j < 10;j++){
+                pen.moveTo(x + tabh * j / 10, canvas.height / 2);
+                pen.lineTo(x + tabh * j / 10, canvas.height / 2 - 5);
+                pen.fillStyle = '#009';
+                pen.fillText(((number + j / 10).toFixed(1)).toString(), x - 3 + tabh * j / 10, canvas.height / 2 + 15);
+              }
+              pen.fillStyle = '#009';
+              pen.fillText(number.toString(), x - 3, canvas.height / 2 + 15);
+          }
+          pen.strokeStyle = '#009';
+          pen.stroke();
+        }
+
+        function drawPoint(x, y, text, pen) {
+            pen.fillStyle = '#009';
+            pen.fillRect(x - 1, canvas.height / 2 - 20, 2, 20);
+            pen.fillText(text.toString(), x - text.toString().length * 6 / 2, canvas.height / 2 - 30);
+        }
+
+        document.querySelector('#submit').addEventListener('click', function(event) {
+            event.preventDefault(); 
+            var numberInput = document.getElementById('num');
+            var number = parseFloat(numberInput.value); // 获取输入框中的实数值
+            var px = Math.round((number + 1 - Math.floor(number)) * tabh) + 20; // 计算点在数轴上的横向位置
+            var py = number; // 点在数轴上的纵向位置为输入的实数值
+            pen.clearRect(0, 0, canvas.width, canvas.height);
+            draw(py, pen);
+            drawPoint(px, py, py, pen);
+            });
+
+                draw(0, pen);
+                // draw(0, penBottom);
+            </script>
+</body> 
+</html>
