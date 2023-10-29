@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>画线和刻度示例</title>
+    <style>
+        #canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var pointA = null;
+        var pointB = null;
+
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        function drawPoint(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function drawScale(pointA, pointB) {
+            var distance = Math.sqrt(Math.pow(pointB.x - pointA.x, 2) + Math.pow(pointB.y - pointA.y, 2));
+            var directionX = (pointB.x - pointA.x) / distance;
+            var directionY = (pointB.y - pointA.y) / distance;
+
+            var scaleLength = 10;
+            var scaleSpacing = 10;
+
+            var currentX = pointA.x + directionX * scaleSpacing;
+            var currentY = pointA.y + directionY * scaleSpacing;
+            var scaleValue = 1;
+
+            while (currentX < pointB.x && currentY < pointB.y) {
+                drawLine(currentX - scaleLength / 2, currentY, currentX + scaleLength / 2, currentY + 6);
+                ctx.font = 'bold 10px Arial';
+                ctx.fillText(scaleValue.toString(), currentX - 5, currentY - 5);
+                currentX += directionX * scaleSpacing;
+                currentY += directionY * scaleSpacing;
+                scaleValue++;
+            }
+        }
+
+        canvas.addEventListener('mousedown', function (event) {
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left - 1;
+            var y = event.clientY - rect.top;
+
+            if (!pointA) {
+                pointA = { x: x, y: y };
+                drawPoint(x, y, '#f00');
+            } else if (!pointB) {
+                pointB = { x: x, y: y };
+                drawPoint(x, y, '#f00');
+                drawLine(pointA.x, pointA.y, x, y);
+                drawScale(pointA, pointB);
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('A', pointA.x - 5, pointA.y - 5);
+                ctx.fillText('B', pointB.x - 5, pointB.y - 5);
+            }
+        });
+    </script>
+</body>
+</html>

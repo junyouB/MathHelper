@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Two Point Correlation</title>
+  <style>
+    .back {
+      text-decoration: none;
+      display: block;
+      float: left;
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 30px;
+      border-radius: 50px;
+      transition: 400ms ease-out;
+      margin-bottom: 30px;
+      width: auto;
+      margin-bottom: 40px;
+    }
+    .back:hover {
+      background-color: #0a830e;
+      font-size: 23px;
+    }
+
+    .input {
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 30px;
+    }
+    #submit {
+      display: block;
+      text-align: center;
+      padding: 10px;
+      font-size: 20px;
+      background-color: #04bc0a;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: auto;
+      border-radius: 50px;
+      margin-bottom: 30px;
+    }
+    #register-x {
+      font-size: 30px;
+    }
+    #register-y {
+      font-size: 30px;
+    }
+    canvas {
+      clear: both;
+      float: left;
+      border: 1px solid #000;
+      cursor: crosshair;
+      margin-left: 8vw;
+    }
+    .Cs div {
+      margin-top: 10px;
+      display: none;
+      background-color: #00d507;
+      color: #cdffde;
+      border-radius: 30px;
+      float: left;
+      width: calc(50% - 40px);
+      padding: 20px;
+      text-align: center;
+    }
+    .result {
+      float: right;
+      margin-right: 8vw;
+      width: calc(50% - 40px);
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">back</a>
+  <br>
+  <canvas id="canvas" width="500px" height="500px"></canvas>
+  <div class="result" id="result"></div>
+  <script>
+    var pen = canvas.getContext('2d');
+
+    var pointA = null;
+    var pointB = null;
+
+    function clearCanvas() {
+      pen.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawPoint(x, y, color) {
+      pen.beginPath();
+      pen.arc(x, y, 5, 0, 2 * Math.PI);
+      pen.fillStyle = color;
+      pen.fill();
+    }
+
+    function drawLine(startX, startY, endX, endY) {
+      pen.beginPath();
+      pen.moveTo(startX, startY);
+      pen.lineTo(endX, endY);
+      pen.strokeStyle = '#000';
+      pen.lineWidth = 2;
+      pen.stroke();
+    }
+
+    function getDirection(pointA, pointB) {
+        var direction = '';
+
+        if (Math.floor(pointA.x) < Math.floor(pointB.x)) {
+            direction += '东';
+        } else if (Math.floor(pointA.x) > Math.floor(pointB.x)) {
+            direction += '西';
+        }
+
+        if (Math.floor(pointA.y) < Math.floor(pointB.y)) {
+            direction += '南';
+        } else if (Math.floor(pointA.y) > Math.floor(pointB.y)) {
+            direction += '北';
+        }
+
+        var angle = Math.round(Math.atan2(Math.abs(pointB.y - pointA.y), Math.abs(pointB.x - pointA.x)) * (180 / Math.PI));
+        direction += ' 方向 ' + angle + ' 度';
+
+        return direction;
+    }
+
+
+    function getDistance(pointA, pointB) {
+      var dx = pointB.x - pointA.x;
+      var dy = pointB.y - pointA.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    var isDrawing = false;
+    var didDrawing = false;
+
+    canvas.addEventListener('mousedown', function (event) {
+        var rect = canvas.getBoundingClientRect();
+        var x = event.clientX - rect.left - 1;
+        var y = event.clientY - rect.top;
+
+        clearCanvas();
+        pointA = { x: x, y: y };
+        pen.fillStyle = '#f00';
+        pen.fillText('A', pointA.x - 5, pointA.y - 5);
+        drawPoint(x, y, '#f00');
+        isDrawing = true;
+        didDrawing = false;
+
+    });
+
+    canvas.addEventListener('mousemove', function (event) {
+        if(isDrawing){
+            didDrawing = true;
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left - 1;
+            var y = event.clientY - rect.top;
+            clearCanvas();
+            pen.fillStyle = '#f00';
+            pen.fillText('A', pointA.x - 5, pointA.y - 5);
+            drawPoint(pointA.x, pointA.y, '#f00');
+            drawLine(pointA.x, pointA.y, x, y);
+        }
+    });
+
+    canvas.addEventListener('click',function(event){
+      if(didDrawing == false){
+        isDrawing = false;
+          var direction = getDirection(pointA, pointB);
+          var distance = getDistance(pointA, pointB);
+
+          if (direction !== '') {
+            var angle = prompt('B点在A点的几度（0～360）？');
+            var distanceValue = prompt('距离几个单位长度？');
+
+            if (angle !== null && distanceValue !== null) {
+              var angleValue = parseFloat(angle);
+              var distanceValue = parseFloat(distanceValue);
+              if (!isNaN(angleValue) && !isNaN(distanceValue)) {
+                var radians = (angleValue * Math.PI) / 180;
+                var newX = pointA.x + distanceValue * Math.cos(radians);
+                var newY = pointA.y + distanceValue * Math.sin(radians);
+
+                pen.fillStyle = '#00f';
+                pen.fillText('B', newX - 5, newY - 5);
+                drawPoint(newX, newY, '#00f');
+                drawLine(pointA.x, pointA.y, newX, newY);
+
+                var resultText = 'B点在A点的' + direction + '方向，角度为' + angleValue + '度，距离为' + distanceValue + '个单位长度。';
+                document.getElementById('result').textContent = resultText;
+              } else {
+                alert('输入的角度或距离无效。');
+              }
+            }
+          }
+        }
+    })
+
+    canvas.addEventListener('mouseup', function (event) {
+        if(isDrawing == true && didDrawing == true){
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left - 1;
+            var y = event.clientY - rect.top;
+
+            pointB = { x: x,y: y };
+            var distance = Math.round(getDistance(pointA, pointB));
+            var direction = getDirection(pointA, pointB); 
+
+            pen.fillStyle = '#00f';
+            pen.fillText('B', pointB.x - 5, pointB.y - 5);
+            drawPoint(x, y, '#00f');
+            drawLine(pointA.x, pointA.y, x, y);
+
+            var result = 'B点在A点 ' + direction + ', 距离 ' +  distance + ' 单位长度';
+            document.getElementById('result').textContent = result;
+            isDrawing = false;
+        }
+    });
+  </script>
+</body>
+</html>

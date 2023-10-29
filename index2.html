@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Math Helper</title>
+  <title>AB System</title>
   <style>
     .back {
+        text-decoration: none;
       display: inline-block;
       padding: 15px 30px;
       font-size: 20px;
@@ -46,9 +47,22 @@
         font-size: 30px;
     }
     canvas{
-        margin-left:8vw;
+        margin-left:9vw;
         width: 80vw;
         height: 80vw;
+        max-width: 700px;
+        max-height: 700px;
+    }
+    .Cs div{
+        margin-top:10px;
+        display: none;
+        background-color: #00d507;
+        color: #cdffde;
+        border-radius: 30px;
+        float: left;
+        width: calc(50% - 40px);
+        padding: 20px;
+        text-align: center;
     }
   </style>
 </head>
@@ -56,9 +70,9 @@
     <a class="back" href="index.html">back</a>
     <br>
     <div class="input">
-        <label for="register-x">coordinate：（</label>
+        <label for="register-x">Number Pair：（</label>
             <select id="register-x" onchange="toggleOption()" required>
-                <option value="">x</option>
+                <option value="">a</option>
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -73,7 +87,7 @@
             </select>
         <label for="register-y">，</label>
             <select id="register-y" onchange="toggleOption()" required>
-                <option value="">y</option>
+                <option value="">b</option>
                 <option value="0">0</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -89,6 +103,10 @@
         <label >）</label>
     </div>
     <div id="submit">submit</div>
+    <div class="Cs">
+        <div class="CsBlue" style="color: blue;" onclick="drawPointBlue(document.getElementById('register-x').selectedIndex - 1, document.getElementById('register-y').selectedIndex - 1)">display the blue point</div>
+        <div class="CsRed" style="color: red;" onclick="drawPointRed(document.getElementById('register-x').selectedIndex - 1, document.getElementById('register-y').selectedIndex - 1)">display the red point</div>
+    </div>
     <canvas id="canvas" width="800px" height="800px"></canvas>
     <script>
         function toggleOption() {
@@ -140,10 +158,32 @@
 
         function drawPoint(x, y) {
             pen.fillStyle = '#009';
-            pen.fillRect(x * tabh + 20 - 4, (fabh - y) * tabh + 20 - 4, 8, 8);
+            pen.fillRect(x * tabh + 20 - 5, (fabh - y) * tabh + 20 - 5, 10, 10);
+            pen.fillStyle = '#900';
+            pen.fillRect(y * tabh + 20 - 5, (fabh - x) * tabh + 20 - 5, 10, 10);
+        }
+
+        function drawPointBlue(x,y){
+            pen.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+            pen.fillStyle = '#009';
+            pen.fillRect(x * tabh + 20 - 5, (fabh - y) * tabh + 20 - 5, 10, 10);
+            document.querySelector('.CsRed').style.display = 'none';
+            document.querySelector('.CsBlue').style.display = 'none';
+        }
+
+        function drawPointRed(y,x){
+            pen.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+            pen.fillStyle = '#900';
+            pen.fillRect(x * tabh + 20 - 5, (fabh - y) * tabh + 20 - 5, 10, 10);
+            document.querySelector('.CsRed').style.display = 'none';
+            document.querySelector('.CsBlue').style.display = 'none';
         }
 
         document.querySelector('#submit').addEventListener('click', function(event) {
+            document.querySelector('.CsRed').style.display = 'none';
+            document.querySelector('.CsBlue').style.display = 'none';
             event.preventDefault(); 
             var selectX = document.getElementById('register-x');
             var selectY = document.getElementById('register-y');
@@ -151,9 +191,13 @@
             var indexY = selectY.selectedIndex;
             var px = indexX - 1; 
             var py = indexY - 1;
-            pen.clearRect(0, 0, canvas.width, canvas.height);
-            draw();
-            drawPoint(px, py);
+            if(px != -1 && py != -1){
+                pen.clearRect(0, 0, canvas.width, canvas.height);
+                draw();
+                drawPoint(px, py);
+                document.querySelector('.CsRed').style.display = 'block';
+                document.querySelector('.CsBlue').style.display = 'block';
+            }
         });
 
         draw();

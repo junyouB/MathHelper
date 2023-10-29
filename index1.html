@@ -1,43 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Math Helper</title>
+  <title>Number Axis</title>
   <style>
     .back {
-      display: inline-block;
-      padding: 15px 30px;
-      font-size: 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-right: 30px;
-      border-radius: 50px;
-      transition: 400ms ease-out;
-      margin-bottom: 30px;
+        text-decoration: none;
+        display: inline-block;
+        padding: 15px 30px;
+        font-size: 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-right: 30px;
+        border-radius: 50px;
+        transition: 400ms ease-out;
+        margin-bottom: 30px;
     }
     .back:hover{
-      background-color: #0a830e;
-      font-size: 23px;
+        background-color: #0a830e;
+        font-size: 23px;
     }
 
     .input{
         margin-bottom: 30px;
-        text-align: center;
-        font-size: 30px;
+        float: left;
+        width: 100%;
+    }
+    .input label{
+        font-size: 50px;
+        float: left;
+    }
+    .input input{
+        margin-top: 10px;
+        border-radius: 30px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: left;
+        width: calc(100% - 40px);
+        font-size: 20px;
     }
     #submit{
+        clear: both;
+        width: calc(100% - 20px);
+        float: left;
         display: block;
         text-align: center;
-      padding: 10px;
-      font-size: 20px;
-      background-color: #04bc0a;
-      color: white;
-      border: none;
-      cursor: pointer;
-      width: auto;
-      border-radius: 50px;
-      margin-bottom: 30px;
+        padding: 10px;
+        font-size: 20px;
+        background-color: #04bc0a;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 50px;
+        margin-bottom: 30px;
     }
     #register-x{
         font-size: 30px;
@@ -60,14 +76,14 @@
         width: 100%;
         height: 100%;
     }
-  </style>
+    </style>
 </head>
 <body>
     <a class="back" href="index.html">back</a>
     <br>
     <div class="input">
-        <label for="num">number:</label>
-          <input id="num" placeholder="enter a number..." required></input>
+        <label for="num">Input:</label>
+        <input id="num" placeholder="enter a number or expression..." required></input>
     </div>
     <div id="submit">submit</div>
     <div class="canvas-container">
@@ -95,52 +111,110 @@
         var canvas = document.getElementById('canvas');
         var pen = canvas.getContext('2d');
 
-        // var canvasBottom = document.getElementById('canvas-bottom');
-        // var penBottom = canvasBottom.getContext('2d');
-
-        var fabh = 2;
+        var fabh = 10;
         var tabh = (canvas.width - 40) / fabh;
+        let t = 5;
+
+        function evaluateExpression(expression) {
+            // 计算表达式的值
+            try {
+                return eval(expression);
+            } catch (error) {
+                alert('Invalid expression');
+                return NaN;
+            }
+        }
 
         function draw(n, pen) {
-          pen.clearRect(0, 0, canvas.width, canvas.height);
-          pen.moveTo(0, canvas.height / 2);
-          pen.lineTo(canvas.width, canvas.height / 2);
-          for (var x = 20; x < canvas.width; x += tabh) {
-              pen.moveTo(x, canvas.height / 2);
-              pen.lineTo(x, canvas.height / 2 - 10);
-              var number = (x - 20) / tabh - 1 + Math.floor(n);
-              for(var j = 1; j < 10;j++){
-                pen.moveTo(x + tabh * j / 10, canvas.height / 2);
-                pen.lineTo(x + tabh * j / 10, canvas.height / 2 - 5);
-                pen.fillStyle = '#009';
-                pen.fillText(((number + j / 10).toFixed(1)).toString(), x - 3 + tabh * j / 10, canvas.height / 2 + 15);
-              }
-              pen.fillStyle = '#009';
-              pen.fillText(number.toString(), x - 3, canvas.height / 2 + 15);
-          }
-          pen.strokeStyle = '#009';
-          pen.stroke();
-        }
-
-        function drawPoint(x, y, text, pen) {
-            pen.fillStyle = '#009';
-            pen.fillRect(x - 1, canvas.height / 2 - 20, 2, 20);
-            pen.fillText(text.toString(), x - text.toString().length * 6 / 2, canvas.height / 2 - 30);
-        }
-
-        document.querySelector('#submit').addEventListener('click', function(event) {
-            event.preventDefault(); 
-            var numberInput = document.getElementById('num');
-            var number = parseFloat(numberInput.value); // 获取输入框中的实数值
-            var px = Math.round((number + 1 - Math.floor(number)) * tabh) + 20; // 计算点在数轴上的横向位置
-            var py = number; // 点在数轴上的纵向位置为输入的实数值
             pen.clearRect(0, 0, canvas.width, canvas.height);
-            draw(py, pen);
-            drawPoint(px, py, py, pen);
-            });
 
-                draw(0, pen);
-                // draw(0, penBottom);
-            </script>
-</body> 
+            // 绘制数轴
+            pen.moveTo(0, canvas.height / 2);
+            pen.lineTo(canvas.width, canvas.height / 2);
+            //正方向
+            let arrow = 6;
+            pen.moveTo(canvas.width, canvas.height / 2);
+            pen.lineTo(canvas.width - arrow, canvas.height / 2 - arrow);
+
+            pen.moveTo(canvas.width, canvas.height / 2);
+            pen.lineTo(canvas.width - arrow, canvas.height / 2 + arrow);
+
+            if (n / Math.abs(n) == -1) {
+                let unit = Math.floor(n / t);
+                for (var x = 20; x < canvas.width; x += unit * tabh) {
+                pen.moveTo(x, canvas.height / 2);
+                pen.lineTo(x, canvas.height / 2 - 10);
+                let text = Math.floor(Math.abs((x - 20) / tabh)) * -1;
+                pen.fillText(((text - fabh) * -1).toString(), x - ((text - fabh) * -1).toString().length * 6 / 2, canvas.height / 2 + 13);
+                }
+            } else if (n / Math.abs(n) == 1) {
+                let unit = Math.floor((n * -1) / t);
+                for (var x = 20; x < canvas.width; x += unit * tabh) {
+                pen.moveTo(x, canvas.height / 2);
+                pen.lineTo(x, canvas.height / 2 - 10);
+                let text = Math.floor(Math.abs((x - 20) / tabh));
+                pen.fillText(Math.abs(text).toString(), x - Math.abs(text).toString().length * 6 / 2, canvas.height / 2 + 13);
+                }
+            }
+            pen.strokeStyle = '#009';
+            pen.stroke();
+        }
+
+        function drawPoint(x, y, text, pen, ck) {
+            if (ck == 1) {
+                pen.fillStyle = '#009';
+                pen.fillRect(x - 1, canvas.height / 2 - 20, 2, 20);
+                pen.fillText(Math.abs(text).toString(), x - Math.abs(text).toString().length * 6 / 2, canvas.height / 2 - 30);
+            } else if (ck == -1) {
+                pen.fillStyle = '#009';
+                pen.fillRect(canvas.width - x - 1, canvas.height / 2 - 20, 2, 20);
+                pen.fillText(text.toString(), canvas.width - x - text.toString().length * 6 / 2, canvas.height / 2 - 30);
+            }
+        }
+
+        document.querySelector('#submit').addEventListener('click', function (event) {
+            event.preventDefault();
+            var numberInput = document.getElementById('num');
+            var expression = numberInput.value.trim(); 
+
+            // 获取表达式的值
+            var number = evaluateExpression(expression);
+            
+            if (isNaN(number)) {
+                console.error('Invalid number:', expression);
+                return;
+            }
+
+            if (Math.abs(number) >= 1000) {
+                t = 2;
+            } else if (Math.abs(number) >= 100) {
+                t = 5;
+            } else if (Math.abs(number) >= 10) {
+                t = 10;
+            } else if(Math.abs(number < 10)){
+                t = 5;
+            }
+
+            if (number / Math.abs(number) == -1) {
+                fabh = Math.floor(number / t) * t;
+                tabh = (canvas.width - 40) / fabh;
+                var px = Math.round(number * tabh) + 20;
+                var py = number;
+                pen.clearRect(0, 0, canvas.width, canvas.height);
+                draw(py, pen);
+                drawPoint(px, py, py, pen, -1);
+            } else {
+                fabh = Math.floor((number * -1) / t) * t;
+                tabh = (canvas.width - 40) / fabh;
+                var px = Math.round((number * -1) * tabh) + 20;
+                var py = number * -1;
+                pen.clearRect(0, 0, canvas.width, canvas.height);
+                draw(number, pen);
+                drawPoint(px, py, py, pen, 1);
+            }
+        });
+
+        draw(0, pen);
+    </script>
+</body>
 </html>
