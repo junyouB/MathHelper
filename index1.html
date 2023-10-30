@@ -3,6 +3,9 @@
 <head>
   <title>Number Axis</title>
   <style>
+    body{
+      touch-action: none;
+    }
     .back {
         text-decoration: none;
         display: inline-block;
@@ -66,7 +69,7 @@
         width: 80%;
         height: 80%;
         margin: 0 auto;
-        overflow: hidden;
+        overflow: auto;
     }
     canvas {
         position: relative;
@@ -88,6 +91,7 @@
     <div id="submit">submit</div>
     <div class="canvas-container">
         <canvas id="canvas" width="700px" height="700px"></canvas>
+        <canvas id="canvas2" width="700px" height="700px"></canvas>
     </div>
     <script>
         function toggleOption() {
@@ -140,7 +144,18 @@
             pen.lineTo(canvas.width - arrow, canvas.height / 2 + arrow);
 
             if (n / Math.abs(n) == -1) {
-                let unit = Math.floor(n / t);
+                let unit;
+                if(Math.abs(n) >= 10000){
+                    unit = -10000;
+                } else if(Math.abs(n) >= 1000) {
+                    unit = -1000;
+                } else if (Math.abs(n) >= 100) {
+                    unit = -100;
+                } else if (Math.abs(n) >= 10) {
+                    unit = -10;
+                } else if(Math.abs(n) < 10){
+                    unit = -5;
+                }
                 for (var x = 20; x < canvas.width; x += unit * tabh) {
                 pen.moveTo(x, canvas.height / 2);
                 pen.lineTo(x, canvas.height / 2 - 10);
@@ -148,7 +163,18 @@
                 pen.fillText(((text - fabh) * -1).toString(), x - ((text - fabh) * -1).toString().length * 6 / 2, canvas.height / 2 + 13);
                 }
             } else if (n / Math.abs(n) == 1) {
-                let unit = Math.floor((n * -1) / t);
+                let unit;
+                if(Math.abs(n) >= 10000){
+                    unit = -10000;
+                } else if (Math.abs(n) >= 1000) {
+                    unit = -1000;
+                } else if (Math.abs(n) >= 100) {
+                    unit = -100;
+                } else if (Math.abs(n) >= 10) {
+                    unit = -10;
+                } else if(Math.abs(n) < 10){
+                    unit = -5;
+                }
                 for (var x = 20; x < canvas.width; x += unit * tabh) {
                 pen.moveTo(x, canvas.height / 2);
                 pen.lineTo(x, canvas.height / 2 - 10);
@@ -172,6 +198,12 @@
             }
         }
 
+        var canvas2 = document.getElementById('canvas2');
+        var pen2 = canvas2.getContext('2d');
+
+        var fabh2 = 2;
+        var tabh2 = (canvas2.width - 40) / fabh2;
+
         document.querySelector('#submit').addEventListener('click', function (event) {
             event.preventDefault();
             var numberInput = document.getElementById('num');
@@ -185,12 +217,14 @@
                 return;
             }
 
-            if (Math.abs(number) >= 1000) {
-                t = 2;
+            if(Math.abs(number) >= 10000){
+                t = 50000;
+            }else if (Math.abs(number) >= 1000) {
+                t = 5000;
             } else if (Math.abs(number) >= 100) {
-                t = 5;
+                t = 500;
             } else if (Math.abs(number) >= 10) {
-                t = 10;
+                t = 50;
             } else if(Math.abs(number < 10)){
                 t = 5;
             }
@@ -199,20 +233,64 @@
                 fabh = Math.floor(number / t) * t;
                 tabh = (canvas.width - 40) / fabh;
                 var px = Math.round(number * tabh) + 20;
+                var px2 = Math.round((number + 1 - Math.floor(number)) * tabh2) + 20;
                 var py = number;
                 pen.clearRect(0, 0, canvas.width, canvas.height);
                 draw(py, pen);
+                draw2(py,pen2);
                 drawPoint(px, py, py, pen, -1);
+                drawPoint2(px2, py, py, pen2, 1);
             } else {
                 fabh = Math.floor((number * -1) / t) * t;
                 tabh = (canvas.width - 40) / fabh;
                 var px = Math.round((number * -1) * tabh) + 20;
+                var px2 = Math.round((number + 1 - Math.floor(number)) * tabh2) + 20;
                 var py = number * -1;
                 pen.clearRect(0, 0, canvas.width, canvas.height);
                 draw(number, pen);
+                draw2(py * -1,pen2);
                 drawPoint(px, py, py, pen, 1);
+                drawPoint2(px2, py, py * -1, pen2, 1);
             }
         });
+        
+
+        function draw2(n, pen2) {
+          pen2.clearRect(0, 0, canvas2.width, canvas2.height);
+          pen2.moveTo(0, canvas2.height / 2);
+          pen2.lineTo(canvas2.width, canvas2.height / 2);
+
+          let arrow = 6;
+            pen2.moveTo(canvas2.width, canvas2.height / 2);
+            pen2.lineTo(canvas2.width - arrow, canvas2.height / 2 - arrow);
+
+            pen2.moveTo(canvas2.width, canvas2.height / 2);
+            pen2.lineTo(canvas2.width - arrow, canvas2.height / 2 + arrow);
+          for (var x = 20; x < canvas2.width; x += tabh2) {
+              pen2.moveTo(x, canvas2.height / 2);
+              pen2.lineTo(x, canvas2.height / 2 - 10);
+              var number = (x - 20) / tabh2 - 1 + Math.floor(n);
+              for(var j = 1; j < 10;j++){
+                pen2.moveTo(x + tabh2 * j / 10, canvas2.height / 2);
+                pen2.lineTo(x + tabh2 * j / 10, canvas2.height / 2 - 5);
+                pen2.fillStyle = '#009';
+                pen2.fillText(((number + j / 10).toFixed(1)).toString(), x - 3 + tabh2 * j / 10, canvas2.height / 2 + 15);
+              }
+              pen2.fillStyle = '#009';
+              pen2.fillText(number.toString(), x - 3, canvas2.height / 2 + 15);
+          }
+          pen2.strokeStyle = '#009';
+          pen2.stroke();
+        }
+
+        function drawPoint2(x, y, text, pen2) {
+            pen2.fillStyle = '#009';
+            pen2.fillRect(x - 1, canvas2.height / 2 - 20, 2, 20);
+            pen2.fillText(text.toString(), x - text.toString().length * 6 / 2, canvas2.height / 2 - 30);
+        }
+
+        draw2(0,pen2);
+
 
         draw(0, pen);
     </script>
