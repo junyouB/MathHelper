@@ -81,7 +81,151 @@
   <br>
   <canvas id="canvas" width="500px" height="500px"></canvas>
   <div class="result" id="result"></div>
-  <script>
+  <script>    
+  function isMobileDevice() {
+    return window.innerWidth <= 768 && window.innerHeight <= 1024;
+  }
+  if(isMobileDevice()){
+    var pen = canvas.getContext('2d');
+    var pointA = null;
+    var pointB = null;
+
+    function clearCanvas() {
+      pen.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawPoint(x, y, color) {
+      pen.beginPath();
+      pen.arc(x, y, 5, 0, 2 * Math.PI);
+      pen.fillStyle = color;
+      pen.fill();
+    }
+
+    function drawLine(startX, startY, endX, endY) {
+      pen.beginPath();
+      pen.moveTo(startX, startY);
+      pen.lineTo(endX, endY);
+      pen.strokeStyle = '#000';
+      pen.lineWidth = 2;
+      pen.stroke();
+    }
+
+    function getDirection(pointA, pointB) {
+        var direction = '';
+
+        if (Math.floor(pointA.x) < Math.floor(pointB.x)) {
+            direction += '东';
+        } else if (Math.floor(pointA.x) > Math.floor(pointB.x)) {
+            direction += '西';
+        }
+
+        if (Math.floor(pointA.y) < Math.floor(pointB.y)) {
+            direction += '南';
+        } else if (Math.floor(pointA.y) > Math.floor(pointB.y)) {
+            direction += '北';
+        }
+
+        var angle = Math.round(Math.atan2(Math.abs(pointB.y - pointA.y), Math.abs(pointB.x - pointA.x)) * (180 / Math.PI));
+        direction += ' 方向 ' + angle + ' 度';
+
+        return direction;
+    }
+
+
+    function getDistance(pointA, pointB) {
+      var dx = pointB.x - pointA.x;
+      var dy = pointB.y - pointA.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    var isDrawing = false;
+    var didDrawing = false;
+
+    canvas.addEventListener('touchstart', function (event) {
+        var rect = canvas.getBoundingClientRect();
+        var x = event.touches[0].clientX - rect.left - 1;
+        var y = event.touches[0].clientY - rect.top;
+
+        clearCanvas();
+        pointA = { x: x, y: y };
+        pen.fillStyle = '#f00';
+        pen.fillText('A', pointA.x - 5, pointA.y - 5);
+        drawPoint(x, y, '#f00');
+        isDrawing = true;
+        didDrawing = false;
+
+    });
+
+    canvas.addEventListener('touchmove', function (event) {
+        if(isDrawing){
+            didDrawing = true;
+            var rect = canvas.getBoundingClientRect();
+            var x = event.touches[0].clientX - rect.left - 1;
+            var y = event.touches[0].clientY - rect.top;
+            clearCanvas();
+            pen.fillStyle = '#f00';
+            pen.fillText('A', pointA.x - 5, pointA.y - 5);
+            drawPoint(pointA.x, pointA.y, '#f00');
+            drawLine(pointA.x, pointA.y, x, y);
+        }
+    });
+
+    canvas.addEventListener('touchend',function(event){
+      if(didDrawing == false){
+        isDrawing = false;
+          var direction = getDirection(pointA, pointB);
+          var distance = getDistance(pointA, pointB);
+
+          if (direction !== '') {
+            var angle = prompt('B点在A点的几度（0～360）？');
+            var distanceValue = prompt('距离几个单位长度？');
+
+            if (angle !== null && distanceValue !== null) {
+              var angleValue = parseFloat(angle);
+              var distanceValue = parseFloat(distanceValue);
+              if (!isNaN(angleValue) && !isNaN(distanceValue)) {
+                var radians = (angleValue * Math.PI) / 180;
+                var newX = pointA.x + distanceValue * Math.cos(radians);
+                var newY = pointA.y + distanceValue * Math.sin(radians);
+
+                pen.fillStyle = '#00f';
+                pen.fillText('B', newX - 5, newY - 5);
+                drawPoint(newX, newY, '#00f');
+                drawLine(pointA.x, pointA.y, newX, newY);
+
+                var resultText = 'B点在A点的' + direction + '方向，角度为' + angleValue + '度，距离为' + distanceValue + '个单位长度。';
+                document.getElementById('result').textContent = resultText;
+              } else {
+                alert('输入的角度或距离无效。');
+              }
+            }
+          }
+        }
+    })
+
+    canvas.addEventListener('touchend', function (event) {
+        if(isDrawing == true && didDrawing == true){
+            var rect = canvas.getBoundingClientRect();
+            var x = event.changedTouches[0].clientX - rect.left - 1;
+            var y = event.changedTouches[0].clientY - rect.top;
+
+            pointB = { x: x,y: y };
+            var distance = Math.round(getDistance(pointA, pointB));
+            var direction = getDirection(pointA, pointB); 
+
+            pen.fillStyle = '#00f';
+            pen.fillText('B', pointB.x - 5, pointB.y - 5);
+            drawPoint(x, y, '#00f');
+            drawLine(pointA.x, pointA.y, x, y);
+
+            var result = 'B点在A点 ' + direction + ', 距离 ' +  distance + ' 单位长度';
+            document.getElementById('result').textContent = result;
+            isDrawing = false;
+        }
+    });
+
+  } else {
+
     var pen = canvas.getContext('2d');
 
     var pointA = null;
@@ -220,6 +364,7 @@
             isDrawing = false;
         }
     });
+  }
   </script>
 </body>
 </html>
