@@ -144,42 +144,20 @@
             pen.lineTo(canvas.width - arrow, canvas.height / 2 + arrow);
 
             if (n / Math.abs(n) == -1) {
-                let unit;
-                if(Math.abs(n) >= 10000){
-                    unit = -10000;
-                } else if(Math.abs(n) >= 1000) {
-                    unit = -1000;
-                } else if (Math.abs(n) >= 100) {
-                    unit = -100;
-                } else if (Math.abs(n) >= 10) {
-                    unit = -10;
-                } else if(Math.abs(n) < 10){
-                    unit = -5;
-                }
+                let unit = Math.pow(10, Math.floor(Math.abs(n)).toString().length - 1) * -1;
                 for (var x = 20; x < canvas.width; x += unit * tabh) {
-                pen.moveTo(x, canvas.height / 2);
-                pen.lineTo(x, canvas.height / 2 - 10);
-                let text = Math.floor(Math.abs((x - 20) / tabh)) * -1;
-                pen.fillText(((text - fabh) * -1).toString(), x - ((text - fabh) * -1).toString().length * 6 / 2, canvas.height / 2 + 13);
+                    pen.moveTo(x, canvas.height / 2);
+                    pen.lineTo(x, canvas.height / 2 - 10);
+                    let text = Math.round(Math.abs((x - 20) / tabh)) * -1;
+                    pen.fillText(((text - fabh) * -1).toString(), x - ((text - fabh) * -1).toString().length * 6 / 2, canvas.height / 2 + 13);
                 }
             } else if (n / Math.abs(n) == 1) {
-                let unit;
-                if(Math.abs(n) >= 10000){
-                    unit = -10000;
-                } else if (Math.abs(n) >= 1000) {
-                    unit = -1000;
-                } else if (Math.abs(n) >= 100) {
-                    unit = -100;
-                } else if (Math.abs(n) >= 10) {
-                    unit = -10;
-                } else if(Math.abs(n) < 10){
-                    unit = -5;
-                }
+                let unit = Math.pow(10, Math.floor(Math.abs(n)).toString().length - 1) * -1;
                 for (var x = 20; x < canvas.width; x += unit * tabh) {
-                pen.moveTo(x, canvas.height / 2);
-                pen.lineTo(x, canvas.height / 2 - 10);
-                let text = Math.floor(Math.abs((x - 20) / tabh));
-                pen.fillText(Math.abs(text).toString(), x - Math.abs(text).toString().length * 6 / 2, canvas.height / 2 + 13);
+                    pen.moveTo(x, canvas.height / 2);
+                    pen.lineTo(x, canvas.height / 2 - 10);
+                    let text = Math.round(Math.abs((x - 20) / tabh));
+                    pen.fillText(Math.abs(text).toString(), x - Math.abs(text).toString().length * 6 / 2, canvas.height / 2 + 13);
                 }
             }
             pen.strokeStyle = '#009';
@@ -217,17 +195,7 @@
                 return;
             }
 
-            if(Math.abs(number) >= 10000){
-                t = 50000;
-            }else if (Math.abs(number) >= 1000) {
-                t = 5000;
-            } else if (Math.abs(number) >= 100) {
-                t = 500;
-            } else if (Math.abs(number) >= 10) {
-                t = 50;
-            } else if(Math.abs(number < 10)){
-                t = 5;
-            }
+            t = Math.pow(10, Math.floor(Math.abs(number)).toString().length - 1) * 5;
 
             if (number / Math.abs(number) == -1) {
                 fabh = Math.floor(number / t) * t;
@@ -274,10 +242,10 @@
                 pen2.moveTo(x + tabh2 * j / 10, canvas2.height / 2);
                 pen2.lineTo(x + tabh2 * j / 10, canvas2.height / 2 - 5);
                 pen2.fillStyle = '#009';
-                pen2.fillText(((number + j / 10).toFixed(1)).toString(), x - 3 + tabh2 * j / 10, canvas2.height / 2 + 15);
+                pen2.fillText("n." + ((j / 10).toFixed(1)).toString()[2], x - 3 + tabh2 * j / 10, canvas2.height / 2 + 15);
               }
               pen2.fillStyle = '#009';
-              pen2.fillText(number.toString(), x - 3, canvas2.height / 2 + 15);
+              pen2.fillText("n".toString(), x - 3, canvas2.height / 2 + 15);
           }
           pen2.strokeStyle = '#009';
           pen2.stroke();

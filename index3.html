@@ -71,11 +71,32 @@
       text-align: center;
     }
     .result {
-      float: right;
-      margin-right: 8vw;
-      width: calc(50% - 40px);
+      clear: both;
+      float: left;
       padding: 20px;
+      text-align: left;
+      background-color: #04bc0a;
+      margin-left: 8vw;
+      width: calc(500px - 40px);
+      margin-bottom: 30px;
+    }
+    .line{
+      float: left;
+      margin: 20px;
+      background-color: #ffffff;
+      width: 50px;
       text-align: center;
+      border: 2px;
+      border-color: #000;
+      border-style: solid;
+      border-top-style: none;
+      height: 4px;
+    }
+    .lineText{
+      float: left;
+      clear: both;
+      margin-left: 8vw;
+      font-size: 20px;
     }
   </style>
 </head>
@@ -84,13 +105,14 @@
   <br>
   <canvas id="canvas" width="500px" height="500px"></canvas>
   <div class="result" id="result"></div>
-  <script>    
+  <div class="lineText">1单位长度:</div>
+  <div class="line"></div>
+  <script> 
   function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
-  if(isMobileDevice()){
-    var pen = canvas.getContext('2d');
+  var pen = canvas.getContext('2d');
     var pointA = null;
     var pointB = null;
 
@@ -117,20 +139,26 @@
     function getDirection(pointA, pointB) {
         var direction = '';
 
+        if (Math.floor(pointA.y) < Math.floor(pointB.y)) {
+            direction += '南偏';
+        } else if (Math.floor(pointA.y) > Math.floor(pointB.y)) {
+            direction += '北偏';
+        }
+
         if (Math.floor(pointA.x) < Math.floor(pointB.x)) {
             direction += '东';
         } else if (Math.floor(pointA.x) > Math.floor(pointB.x)) {
             direction += '西';
         }
 
-        if (Math.floor(pointA.y) < Math.floor(pointB.y)) {
-            direction += '南';
-        } else if (Math.floor(pointA.y) > Math.floor(pointB.y)) {
-            direction += '北';
-        }
-
         var angle = Math.round(Math.atan2(Math.abs(pointB.y - pointA.y), Math.abs(pointB.x - pointA.x)) * (180 / Math.PI));
-        direction += ' 方向 ' + angle + ' 度';
+        angle = 90 - angle;
+        if(angle == 90 || angle == 0){
+          direction = direction[0];
+          direction += ' 方向';
+        } else {
+          direction += ' 方向 ' + angle + ' 度';
+        }
 
         return direction;
     }
@@ -139,12 +167,13 @@
     function getDistance(pointA, pointB) {
       var dx = pointB.x - pointA.x;
       var dy = pointB.y - pointA.y;
-      return Math.sqrt(dx * dx + dy * dy);
+      return Math.round(Math.sqrt(dx * dx + dy * dy)) / 50;
     }
 
     var isDrawing = false;
     var didDrawing = false;
 
+  if(isMobileDevice()){
     canvas.addEventListener('touchstart', function (event) {
         var rect = canvas.getBoundingClientRect();
         var x = event.touches[0].clientX - rect.left - 1;
@@ -189,8 +218,8 @@
               var distanceValue = parseFloat(distanceValue);
               if (!isNaN(angleValue) && !isNaN(distanceValue)) {
                 var radians = (angleValue * Math.PI) / 180;
-                var newX = pointA.x + distanceValue * Math.cos(radians);
-                var newY = pointA.y + distanceValue * Math.sin(radians);
+                var newX = pointA.x + distanceValue * Math.cos(radians) * 50;
+                var newY = pointA.y + distanceValue * Math.sin(radians) * 50;
 
                 pen.fillStyle = '#00f';
                 pen.fillText('B', newX - 5, newY - 5);
@@ -214,7 +243,7 @@
             var y = event.changedTouches[0].clientY - rect.top;
 
             pointB = { x: x,y: y };
-            var distance = Math.round(getDistance(pointA, pointB));
+            var distance = getDistance(pointA, pointB);
             var direction = getDirection(pointA, pointB); 
 
             pen.fillStyle = '#00f';
@@ -229,62 +258,6 @@
     });
 
   } else {
-    var pen = canvas.getContext('2d');
-
-    var pointA = null;
-    var pointB = null;
-
-    function clearCanvas() {
-      pen.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function drawPoint(x, y, color) {
-      pen.beginPath();
-      pen.arc(x, y, 5, 0, 2 * Math.PI);
-      pen.fillStyle = color;
-      pen.fill();
-    }
-
-    function drawLine(startX, startY, endX, endY) {
-      pen.beginPath();
-      pen.moveTo(startX, startY);
-      pen.lineTo(endX, endY);
-      pen.strokeStyle = '#000';
-      pen.lineWidth = 2;
-      pen.stroke();
-    }
-
-    function getDirection(pointA, pointB) {
-        var direction = '';
-
-        if (Math.floor(pointA.x) < Math.floor(pointB.x)) {
-            direction += '东';
-        } else if (Math.floor(pointA.x) > Math.floor(pointB.x)) {
-            direction += '西';
-        }
-
-        if (Math.floor(pointA.y) < Math.floor(pointB.y)) {
-            direction += '南';
-        } else if (Math.floor(pointA.y) > Math.floor(pointB.y)) {
-            direction += '北';
-        }
-
-        var angle = Math.round(Math.atan2(Math.abs(pointB.y - pointA.y), Math.abs(pointB.x - pointA.x)) * (180 / Math.PI));
-        direction += ' 方向 ' + angle + ' 度';
-
-        return direction;
-    }
-
-
-    function getDistance(pointA, pointB) {
-      var dx = pointB.x - pointA.x;
-      var dy = pointB.y - pointA.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    var isDrawing = false;
-    var didDrawing = false;
-
     canvas.addEventListener('mousedown', function (event) {
         var rect = canvas.getBoundingClientRect();
         var x = event.clientX - rect.left - 1;
@@ -329,8 +302,8 @@
               var distanceValue = parseFloat(distanceValue);
               if (!isNaN(angleValue) && !isNaN(distanceValue)) {
                 var radians = (angleValue * Math.PI) / 180;
-                var newX = pointA.x + distanceValue * Math.cos(radians);
-                var newY = pointA.y + distanceValue * Math.sin(radians);
+                var newX = pointA.x + distanceValue * Math.cos(radians) * 50;
+                var newY = pointA.y + distanceValue * Math.sin(radians) * 50;
 
                 pen.fillStyle = '#00f';
                 pen.fillText('B', newX - 5, newY - 5);
@@ -354,7 +327,7 @@
             var y = event.clientY - rect.top;
 
             pointB = { x: x,y: y };
-            var distance = Math.round(getDistance(pointA, pointB));
+            var distance = getDistance(pointA, pointB);
             var direction = getDirection(pointA, pointB); 
 
             pen.fillStyle = '#00f';
