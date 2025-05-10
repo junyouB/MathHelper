@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pick's theorem</title>
+  <style>
+    body {
+      touch-action: none;
+    }
+    .back {
+      text-decoration: none;
+      display: block;
+      float: left;
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 30px;
+      border-radius: 50px;
+      transition: 400ms ease-out;
+      margin-bottom: 30px;
+      width: auto;
+    }
+    .back:hover {
+      background-color: #0a830e;
+      font-size: 23px;
+    }
+    
+    canvas {
+      clear: both;
+      float: left;
+      border: 1px solid #000;
+      margin-left: 8vw;
+      cursor: crosshair;
+    }
+    
+    .controls {
+      clear: both;
+      margin-top: 20px;
+      margin-left: 8vw;
+    }
+    
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #04bc0a;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 50px;
+      margin-right: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .button:hover {
+      background-color: #039508;
+    }
+    
+    .result {
+      clear: both;
+      float: left;
+      padding: 20px;
+      text-align: left;
+      background-color: #04bc0a;
+      margin-left: 8vw;
+      width: calc(500px - 40px);
+      margin-bottom: 30px;
+      color: white;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">返回</a>
+  <br>
+  <canvas id="canvas" width="500px" height="500px"></canvas>
+  <div class="controls">
+    <button id="showSquareBtn" class="button">显示square</button>
+    <button id="clearBtn" class="button" style="display: none;">重新绘制</button>
+    <button id="extendEdgesBtn" class="button" style="display: none;">延长边</button>
+  </div>
+  <div id="result" class="result">Pick定理：面积 = 内部格点数 + 边界格点数/2 - 1</div>
+  
+  <script>
+    // 获取画布和上下文
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    
+    // 设置网格参数
+    var gridSize = 40; // 网格大小
+    var gridCount = 10; // 网格数量
+    var showingSquares = false; // 是否显示正方形
+    var vertices = []; // 存储多边形顶点
+    var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']; // 顶点标记字母
+    var currentEdgeIndex = 0; // 当前延长的边的索引
+    var extendedEdges = []; // 存储已延长的边
+    
+    // 初始化
+    function init() {
+      drawGrid();
+      
+      // 添加按钮事件监听器
+      document.getElementById('showSquareBtn').addEventListener('click', toggleSquares);
+      document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+      document.getElementById('extendEdgesBtn').addEventListener('click', extendNextEdge);
+      
+      // 添加画布点击事件
+      canvas.addEventListener('click', handleCanvasClick);
+    }
+    
+    // 绘制网格
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      
+      // 不再绘制垂直线和水平线，只绘制格点
+      
+      // 绘制格点
+      for (var x = gridSize; x <= canvas.width - gridSize; x += gridSize) {
+        for (var y = gridSize; y <= canvas.height - gridSize; y += gridSize) {
+          drawPoint(x, y, '#000');
+        }
+      }
+    }
+    
+    // 绘制点
+    function drawPoint(x, y, color) {
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+    
+    // 绘制正方形
+    function drawSquares() {
+      var squareSize = gridSize / 2; // 正方形大小为网格大小的一半
+      
+      for (var x = gridSize; x <= canvas.width - gridSize; x += gridSize) {
+        for (var y = gridSize; y <= canvas.height - gridSize; y += gridSize) {
+          ctx.beginPath();
+          ctx.rect(x - squareSize, y - squareSize, squareSize * 2, squareSize * 2);
+          ctx.strokeStyle = '#777'; ctx.setLineDash([4, 6]);
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+    }
+    
+    // 切换显示正方形
+    function toggleSquares() {
+      showingSquares = !showingSquares;
+      if (showingSquares) {
+        drawSquares();
+        document.getElementById('showSquareBtn').textContent = '隐藏square';
+      } else {
+        drawGrid();
+        document.getElementById('showSquareBtn').textContent = '显示square';
+      }
+    }
+    
+    // 判断点是否在线段上
+    function isPointOnSegment(px, py, x1, y1, x2, y2) {
+      const dxc = px - x1;
+      const dyc = py - y1;
+      const dxl = x2 - x1;
+      const dyl = y2 - y1;
+      const cross = dxc * dyl - dyc * dxl;
+      if (Math.abs(cross) > 1e-10) return false;
+      if (Math.abs(dxl) >= Math.abs(dyl)) {
+        return dxl > 0 ? x1 <= px && px <= x2 : x2 <= px && px <= x1;
+      } else {
+        return dyl > 0 ? y1 <= py && py <= y2 : y2 <= py && py <= y1;
+      }
+    }
+
+    // 判断点是否在多边形内部（射线法）
+    function isPointInPolygon(px, py, vertices) {
+      let inside = false;
+      for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        const xi = vertices[i].x, yi = vertices[i].y;
+        const xj = vertices[j].x, yj = vertices[j].y;
+        const intersect = ((yi > py) !== (yj > py)) &&
+          (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    // 判断点是否在多边形边界上
+    function isPointOnBoundary(px, py, vertices) {
+      for (let i = 0; i < vertices.length; i++) {
+        const next = (i + 1) % vertices.length;
+        if (isPointOnSegment(px, py, vertices[i].x, vertices[i].y, vertices[next].x, vertices[next].y)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 检查是否与已有点重合（除了闭合情况）
+    function isPointOverlapping(x, y, vertices) {
+      return vertices.some(vertex => vertex.x === x && vertex.y === y);
+    }
+
+    // 处理画布点击事件
+    function handleCanvasClick(event) {
+      // 如果多边形已经闭合，不允许继续添加点
+      if (document.getElementById('clearBtn').style.display === 'inline-block') {
+        return;
+      }
+      
+      // 开始绘制时隐藏square按钮
+      if (vertices.length === 0) {
+        document.getElementById('showSquareBtn').style.display = 'none';
+      }
+
+      var rect = canvas.getBoundingClientRect();
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
+      
+      // 找到最近的格点
+      var nearestX = Math.round(x / gridSize) * gridSize;
+      var nearestY = Math.round(y / gridSize) * gridSize;
+      
+      // 确保点在有效范围内
+      if (nearestX >= gridSize && nearestX <= canvas.width - gridSize &&
+          nearestY >= gridSize && nearestY <= canvas.height - gridSize) {
+        
+        // 检查是否与第一个点重合（形成闭合多边形）
+        if (vertices.length > 0 && 
+            nearestX === vertices[0].x && 
+            nearestY === vertices[0].y) {
+          // 如果与第一个点重合，不添加新点，标记内部点和边界点
+          redrawCanvas(true);
+          // 显示清除按钮、延长边按钮和显示矩形按钮
+          document.getElementById('clearBtn').style.display = 'inline-block';
+          document.getElementById('extendEdgesBtn').style.display = 'inline-block';
+          return;
+        }
+
+        // 检查是否与其他点重合
+        if (isPointOverlapping(nearestX, nearestY, vertices)) {
+          return; // 如果重合，不添加该点
+        }
+        
+        // 添加顶点
+        vertices.push({x: nearestX, y: nearestY});
+        
+        // 重绘画布
+        redrawCanvas(false);
+      }
+    }
+    
+    // 重绘画布
+    function redrawCanvas(isClosed = false) {
+      // 清除画布并重绘网格
+      drawGrid();
+      
+      // 如果正在显示正方形，则重绘正方形
+      if (showingSquares) {
+        drawSquares();
+      }
+      
+      // 绘制多边形顶点和连线
+      if (vertices.length > 0) {
+        // 如果多边形已闭合，标记内部点和边界点
+        if (isClosed) {
+          // 遍历所有格点
+          for (let x = gridSize; x <= canvas.width - gridSize; x += gridSize) {
+            for (let y = gridSize; y <= canvas.height - gridSize; y += gridSize) {
+              // 检查是否在边界上
+              if (isPointOnBoundary(x, y, vertices)) {
+                drawPoint(x, y, '#0000FF'); // 蓝色标记边界点
+              }
+              // 检查是否在内部
+              else if (isPointInPolygon(x, y, vertices)) {
+                drawPoint(x, y, '#FF0000'); // 红色标记内部点
+                // 绘制虚线阴影线
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                ctx.fillRect(x - gridSize/2, y - gridSize/2, gridSize, gridSize)
+              }
+            }
+          }
+        }
+
+        // 绘制顶点和连线
+        vertices.forEach((vertex, index) => {
+          // 绘制黑点
+          drawPoint(vertex.x, vertex.y, '#000');
+
+          if (!isClosed) {
+  ctx.setLineDash([5, 6]);
+} else {
+  ctx.setLineDash([]);
+}
+          
+          // 添加字母标记
+          ctx.font = '16px Arial';
+          ctx.fillStyle = '#000';
+          letter = letters[index];
+          if(letter == undefined){
+            letter = letters[index % letters.length] + ((index - index % letters.length) / letters.length);
+          }
+          ctx.fillText(letter, vertex.x + 10, vertex.y - 10);
+          
+          // 如果有多个点，绘制连线
+          if (index > 0) {
+            ctx.beginPath();
+            ctx.moveTo(vertices[index - 1].x, vertices[index - 1].y);
+            ctx.lineTo(vertex.x, vertex.y);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          // 如果是最后一个点且多边形已闭合，绘制闭合线
+          if (isClosed && index === vertices.length - 1) {
+            ctx.beginPath();
+            ctx.moveTo(vertex.x, vertex.y);
+            ctx.lineTo(vertices[0].x, vertices[0].y);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 绘制延长的边和矩形
+            drawExtendedEdges();
+          }
+        });
+      }
+    }
+    
+    // 清除画布
+    function clearCanvas() {
+      vertices = [];
+      extendedEdges = [];
+      currentEdgeIndex = 0;
+      redrawCanvas();
+      // 重置所有按钮状态
+      document.getElementById('showSquareBtn').style.display = 'inline-block';
+      document.getElementById('showSquareBtn').textContent = '显示square';
+      document.getElementById('clearBtn').style.display = 'none';
+      document.getElementById('extendEdgesBtn').style.display = 'none';
+    }
+
+    // 延长所有边
+    function extendNextEdge() {
+      // 如果已经有延长的边，则清除它们
+      if (extendedEdges.length > 0) {
+        extendedEdges = [];
+        document.getElementById('extendEdgesBtn').textContent = '延长边';
+      } else {
+        // 延长所有边
+        for (let i = 0; i < vertices.length; i++) {
+          const startVertex = vertices[i];
+          const endVertex = vertices[(i + 1) % vertices.length];
+          
+          // 计算边的方向向量
+          const dx = endVertex.x - startVertex.x;
+          const dy = endVertex.y - startVertex.y;
+          
+          // 计算延长后的终点
+          const extendLength = gridSize * 2; // 延长两个格子的距离
+          const length = Math.sqrt(dx * dx + dy * dy);
+          const extendedEndX = endVertex.x + (dx / length) * extendLength;
+          const extendedEndY = endVertex.y + (dy / length) * extendLength;
+          
+          // 保存延长的边
+          extendedEdges.push({
+            start: endVertex,
+            end: { x: extendedEndX, y: extendedEndY }
+          });
+        }
+        document.getElementById('extendEdgesBtn').textContent = '隐藏延长边';
+      }
+      
+      // 重绘画布
+      redrawCanvas(true);
+    }
+
+    // 绘制延长的边
+    function drawExtendedEdges() {
+      ctx.strokeStyle = '#000'; ctx.setLineDash([5, 7]);
+      ctx.lineWidth = 2;
+      
+      extendedEdges.forEach(edge => {
+        ctx.beginPath();
+        ctx.moveTo(edge.start.x, edge.start.y);
+        ctx.lineTo(edge.end.x, edge.end.y);
+        ctx.stroke();
+      });
+    }
+    
+    // 初始化应用
+    window.onload = init;
+  </script>
+</body>
+</html>
