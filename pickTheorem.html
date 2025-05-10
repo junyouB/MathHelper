@@ -71,6 +71,15 @@
       color: white;
       border-radius: 10px;
     }
+
+    .final button {
+      background-color: #048708;
+      color: white;
+      cursor: pointer;
+      border: none;
+      padding: 6px;
+      border-radius: 100px;
+    }
   </style>
 </head>
 <body>
@@ -82,7 +91,10 @@
     <button id="clearBtn" class="button" style="display: none;">重新绘制</button>
     <button id="extendEdgesBtn" class="button" style="display: none;">延长边</button>
   </div>
-  <div id="result" class="result">Pick定理：面积 = 内部格点数 + 边界格点数/2 - 1</div>
+  <div id="result" class="result">
+    <div> Pick's theorem：S-面积, i-内部格点数, b-边上格点数.</div>
+    <div> 对于任意简单多边形都有 S = i + b/2 - 1.</div>
+  </div>
   
   <script>
     // 获取画布和上下文
@@ -96,6 +108,8 @@
     var vertices = []; // 存储多边形顶点
     var letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']; // 顶点标记字母
     var currentEdgeIndex = 0; // 当前延长的边的索引
+    var boundaryPoints = 0; // 边界格点数
+    var internalPoints = 0; // 内部格点数
     var extendedEdges = []; // 存储已延长的边
     
     // 初始化
@@ -269,23 +283,26 @@
       if (vertices.length > 0) {
         // 如果多边形已闭合，标记内部点和边界点
         if (isClosed) {
+          boundaryPoints = 0; // 边界格点数
+          internalPoints = 0; // 内部格点数
           // 遍历所有格点
           for (let x = gridSize; x <= canvas.width - gridSize; x += gridSize) {
             for (let y = gridSize; y <= canvas.height - gridSize; y += gridSize) {
               // 检查是否在边界上
               if (isPointOnBoundary(x, y, vertices)) {
-                drawPoint(x, y, '#0000FF'); // 蓝色标记边界点
+                boundaryPoints++;
+                drawPoint(x, y, '#0000FF');
               }
               // 检查是否在内部
               else if (isPointInPolygon(x, y, vertices)) {
-                drawPoint(x, y, '#FF0000'); // 红色标记内部点
-                // 绘制虚线阴影线
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-                ctx.fillRect(x - gridSize/2, y - gridSize/2, gridSize, gridSize)
+                  internalPoints++;
+                  drawPoint(x, y, '#FF0000');
+                  ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                  ctx.fillRect(x - gridSize/2, y - gridSize/2, gridSize, gridSize);
               }
-            }
           }
         }
+      }
 
         // 绘制顶点和连线
         vertices.forEach((vertex, index) => {
@@ -293,10 +310,10 @@
           drawPoint(vertex.x, vertex.y, '#000');
 
           if (!isClosed) {
-  ctx.setLineDash([5, 6]);
-} else {
-  ctx.setLineDash([]);
-}
+            ctx.setLineDash([5, 6]);
+          } else {
+            ctx.setLineDash([]);
+          }
           
           // 添加字母标记
           ctx.font = '16px Arial';
@@ -319,6 +336,9 @@
 
           // 如果是最后一个点且多边形已闭合，绘制闭合线
           if (isClosed && index === vertices.length - 1) {
+            // 计算面积
+            area = internalPoints + boundaryPoints / 2 - 1;
+            updateResult();
             ctx.beginPath();
             ctx.moveTo(vertex.x, vertex.y);
             ctx.lineTo(vertices[0].x, vertices[0].y);
@@ -333,11 +353,27 @@
       }
     }
     
+    // 更新结果显示
+    function updateResult() {
+      const resultElement = document.getElementById('result');
+      resultElement.innerHTML = `
+        <div style="color:#ddd"> Pick's theorem：S-面积, i-内部格点数, b-边上格点数.</div>
+        <div style="color:#ddd"> 对于任意简单多边形都有 S = i + b/2 - 1.</div>
+        <div class="final"> S = <button onclick="showParam(this,${internalPoints})">显示i</button> + <button onclick="showParam(this,${boundaryPoints})">显示b</button> * 1/2 - 1 = <button onclick="showParam(this,${internalPoints + boundaryPoints/2 - 1})">显示S</button></div>
+      `;
+    }
+
+    function showParam(event,param) {
+        event.textContent = param;
+    };
+    
     // 清除画布
     function clearCanvas() {
       vertices = [];
       extendedEdges = [];
       currentEdgeIndex = 0;
+      boundaryPoints = 0;
+      internalPoints = 0;
       redrawCanvas();
       // 重置所有按钮状态
       document.getElementById('showSquareBtn').style.display = 'inline-block';
